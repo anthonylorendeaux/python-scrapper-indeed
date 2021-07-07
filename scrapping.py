@@ -13,22 +13,25 @@ def get_url(position, location):
 
 
 def get_record(card):
-    link_tag = card.h2.a
-    job_title = link_tag.get('title')
-    job_url = 'https://www.indeed.com' + link_tag.get('href')
-    company = card.find('span', 'company').text.strip()
-    job_location = card.find('div', 'recJobLoc').get('data-rc-loc')
-    job_summary = card.find('div', 'summary').text.strip()
-    post_date = card.find('span', 'date').text
+    job_title = card.find('h2', 'jobTitle').text.strip()
+    job_url = 'https://www.indeed.com' + card['href']
+    company = card.find('span', 'companyName').text.strip()
+    job_location = card.find('div', 'companyLocation').text.strip()
+    post_date = card.find('span', 'date').text.strip()
     today = datetime.today().strftime('%Y-%m-%d')
 
     try:
-        job_salary = card.find('span', 'salaryText').text.strip()
+        job_summary = card.find('div', 'job-snippet').find('li').text
+    except AttributeError:
+        job_summary = ''
+
+    try:
+        job_salary = card.find('span', 'salary-snippet').text.strip()
     except AttributeError:
         job_salary = ''
 
-    record = (job_title, company, job_location, post_date,
-              today, job_summary, job_salary, job_url)
+    record = (job_title, company, job_location, job_summary, post_date,
+              today, job_salary, job_url)
 
     return record
 
@@ -40,7 +43,7 @@ def main(position, location):
     while True:
         response = requests.get(url)
         soup = BeautifulSoup(response.text, 'html.parser')
-        jobs = soup.find_all('div', 'jobsearch-SerpJobCard')
+        jobs = soup.find_all('a', 'resultWithShelf')
 
         for job in jobs:
             record = get_record(job)
@@ -54,9 +57,8 @@ def main(position, location):
     # save the job data
     with open('indeed.csv', 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
-        writer.writerow(['Titre', 'Entreprise', 'Localisation', 'Date du poste',
-                        'Date d\'extraction', 'Résumé', 'Salaire', 'Url'])
+        writer.writerow(['Titre', 'Entreprise', 'Localisation', 'Résumé', 'Date du poste',
+                        'Date d\'extraction', 'Salaire', 'Url'])
         writer.writerows(records)
-
 
 main('Stagiaire Développement', 'Toulouse (31)')
