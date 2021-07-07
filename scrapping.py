@@ -61,4 +61,6 @@ def main(position, location):
                         'Date d\'extraction', 'Salaire', 'Url'])
         writer.writerows(records)
 
-main('Stagiaire Développement', 'Toulouse (31)')
+search_job = input("Quel est le type de travail que vous recherchez ? ")
+localisation = input("Localisation ? ")
+main(search_job, localisation)
